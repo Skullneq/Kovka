@@ -25,7 +25,6 @@ body{
 h1{text-align:center;font-size:22px;letter-spacing:.5px;margin:0 0 6px;font-weight:600}
 .sub{text-align:center;color:var(--muted);font-size:13px;margin:0 0 20px}
 
-/* ---------- вкладки ---------- */
 .tabs{
   display:flex;gap:4px;
   max-width:660px;margin:0 auto 16px;
@@ -76,7 +75,6 @@ input[type=number]{
 input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,167,44,.15)}
 input[type=number]::placeholder{color:#4a525f;font-weight:500;font-size:14px}
 
-/* ---------- сетка ---------- */
 .grid{
   display:grid;
   grid-template-columns:repeat(4, 92px);
@@ -108,7 +106,6 @@ input[type=number]::placeholder{color:#4a525f;font-weight:500;font-size:14px}
 .cell:hover{transform:translateY(-3px);border-color:var(--accent)}
 .cell:active{transform:scale(.94)}
 
-/* ---------- комбо ---------- */
 .combo-wrap{
   display:flex;align-items:center;justify-content:center;
   gap:10px;flex-wrap:wrap;
@@ -134,7 +131,6 @@ input[type=number]::placeholder{color:#4a525f;font-weight:500;font-size:14px}
 .slot.filled.neg{background:rgba(239,91,91,.15);border-color:rgba(239,91,91,.5);color:#ffa3a3}
 .slot.filled:hover{filter:brightness(1.3)}
 
-/* ---------- кнопки ---------- */
 .btn{
   padding:11px 26px;border-radius:10px;border:none;
   font-size:15px;font-weight:700;cursor:pointer;
@@ -159,7 +155,6 @@ input[type=number]::placeholder{color:#4a525f;font-weight:500;font-size:14px}
 .center{text-align:center}
 .btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
-/* ---------- результат ---------- */
 #result{max-width:660px;margin:22px auto 0}
 #result h2{
   font-size:15px;text-transform:uppercase;letter-spacing:1.5px;
@@ -224,7 +219,6 @@ summary:hover{color:var(--text)}
 .err small{display:block;font-weight:400;color:#c78c8c;margin-top:6px;font-size:13px}
 .hint{text-align:center;color:#5a6272;font-size:12px;margin:10px 0 0}
 
-/* ---------- список ---------- */
 .list-controls{
   max-width:660px;
   margin:0 auto 12px;
@@ -303,6 +297,7 @@ summary:hover{color:var(--text)}
   border-color:var(--accent);
   transform:translateY(-1px);
 }
+.craft-row.is-db:hover{border-color:rgba(212,167,44,.5)}
 .craft-info{flex:1;min-width:0}
 .craft-name{
   font-size:15px;
@@ -321,15 +316,24 @@ summary:hover{color:var(--text)}
 }
 .craft-src{
   display:inline-block;
-  margin-left:6px;
-  padding:1px 6px;
+  margin-left:8px;
+  padding:1px 7px;
   border-radius:5px;
   font-size:10px;
   text-transform:uppercase;
   letter-spacing:.5px;
-  color:#5a6272;
-  background:#232833;
   vertical-align:middle;
+  font-weight:600;
+}
+.craft-src.db{
+  color:#e0b545;
+  background:rgba(212,167,44,.12);
+  border:1px solid rgba(212,167,44,.35);
+}
+.craft-src.local{
+  color:#8b93a1;
+  background:#232833;
+  border:1px solid #2e343f;
 }
 .del-btn{
   width:30px;height:30px;
@@ -371,7 +375,6 @@ summary:hover{color:var(--text)}
   line-height:1.5;
 }
 
-/* ---------- модалки ---------- */
 .modal-bg{
   position:fixed;inset:0;
   background:rgba(0,0,0,.7);
@@ -476,8 +479,7 @@ summary:hover{color:var(--text)}
 
   <div class="list-controls">
     <input id="searchInput" class="search-input" type="text" placeholder="Поиск: мед...">
-    <button class="sort-btn active" data-field="name">Название ▲</button>
-    <button class="sort-btn" data-field="target">Цель</button>
+    <button class="sort-btn active" id="sortNameBtn">Название ▲</button>
     <button class="export-btn" id="exportBtn">⬇ Выгрузить</button>
   </div>
 
@@ -515,25 +517,21 @@ summary:hover{color:var(--text)}
 /* ====================== ДАННЫЕ ====================== */
 const MOVES = [-3, -6, 2, 7, -9, -15, 13, 16];
 const CRAFT_KEY = 'forgeCrafts_v1';
-const DELETED_KEY = 'forgeCraftsDeleted_v1';
 
 let combo = [];
-let baseCrafts = [];        // из db.txt
+let baseCrafts = [];        // из db.txt (приоритет)
 let localCrafts = [];       // из localStorage
-let deletedNames = [];      // имена db-крафтов, удалённых локально
 let allCrafts = [];
 
 let currentTab = 'calc';
-let sortField = 'name';
-let sortDir = 'asc';
+let sortDir = 'asc';        // 'asc' | 'desc' — только по имени
 let searchQuery = '';
 let dbLoaded = false;
 
 /* ====================== ЗАГРУЗКА ====================== */
 async function loadAll(){
-  // base из db.txt
   try{
-    const r = await fetch('db.txt', {cache:'no-store'});
+    const r = await fetch('db.txt?t=' + Date.now(), {cache:'no-store'});
     if(r.ok){
       const data = await r.json();
       if(Array.isArray(data)){
@@ -545,20 +543,11 @@ async function loadAll(){
     console.warn('db.txt недоступен', e);
   }
 
-  // локальные
   try{
     const raw = localStorage.getItem(CRAFT_KEY);
     if(raw){
       const arr = JSON.parse(raw);
       if(Array.isArray(arr)) localCrafts = arr;
-    }
-  }catch(e){}
-
-  try{
-    const raw = localStorage.getItem(DELETED_KEY);
-    if(raw){
-      const arr = JSON.parse(raw);
-      if(Array.isArray(arr)) deletedNames = arr;
     }
   }catch(e){}
 
@@ -573,21 +562,14 @@ function saveLocal(){
   }
 }
 
-function saveDeleted(){
-  try{
-    localStorage.setItem(DELETED_KEY, JSON.stringify(deletedNames));
-  }catch(e){}
-}
-
+/* База имеет приоритет: если имя есть в db.txt — показывается версия оттуда */
 function mergeCrafts(){
   const map = new Map();
-  baseCrafts.forEach(c => {
-    if(!deletedNames.includes(c.name.toLowerCase())){
-      map.set(c.name.toLowerCase(), {...c, _src:'db'});
-    }
-  });
   localCrafts.forEach(c => {
     map.set(c.name.toLowerCase(), {...c, _src:'local'});
+  });
+  baseCrafts.forEach(c => {
+    map.set(c.name.toLowerCase(), {...c, _src:'db'});
   });
   allCrafts = [...map.values()];
 }
@@ -707,9 +689,10 @@ document.getElementById('calc').onclick = run;
 
 function run(){
   const resEl = document.getElementById('result');
-  const target = Number(document.getElementById('target').value);
+  const targetVal = document.getElementById('target').value;
+  const target = Number(targetVal);
 
-  if(!Number.isFinite(target) || document.getElementById('target').value === ''){
+  if(targetVal === '' || !Number.isFinite(target)){
     resEl.innerHTML = '<div class="err">Введите итоговое значение</div>';
     return;
   }
@@ -825,22 +808,25 @@ document.getElementById('saveConfirm').onclick = () => {
     alert('Введите название');
     return;
   }
+  const lower = name.toLowerCase();
+
+  // если имя уже есть в базе — предупреждаем
+  const inDb = baseCrafts.some(c => c.name.toLowerCase() === lower);
+  if(inDb){
+    if(!confirm('Крафт «' + name + '» уже есть в базе.\n\nБаза имеет приоритет — в списке будет показана версия из db.txt, а не твоя локальная.\n\nВсё равно сохранить?')){
+      return;
+    }
+  }
+
   const target = Number(document.getElementById('target').value);
   const craft = { name, target, combo: combo.slice() };
 
-  // убираем старое локальное с тем же именем, кладём новое
-  const lower = name.toLowerCase();
   localCrafts = localCrafts.filter(c => c.name.toLowerCase() !== lower);
   localCrafts.push(craft);
-  // если это имя было в db — убираем из «удалённых»
-  deletedNames = deletedNames.filter(n => n !== lower);
-
   saveLocal();
-  saveDeleted();
   mergeCrafts();
   hideModal('saveModal');
 
-  // визуальный отклик
   const btn = document.getElementById('saveBtn');
   const old = btn.textContent;
   btn.textContent = '✓ Сохранено';
@@ -853,29 +839,16 @@ document.getElementById('searchInput').oninput = (e) => {
   renderList();
 };
 
-document.querySelectorAll('.sort-btn').forEach(b => {
-  b.onclick = () => {
-    const f = b.dataset.field;
-    if(sortField === f){
-      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-    }else{
-      sortField = f;
-      sortDir = 'asc';
-    }
-    updateSortButtons();
-    renderList();
-  };
-});
+document.getElementById('sortNameBtn').onclick = () => {
+  sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  updateSortButton();
+  renderList();
+};
 
-function updateSortButtons(){
-  document.querySelectorAll('.sort-btn').forEach(b => {
-    const f = b.dataset.field;
-    const active = f === sortField;
-    b.classList.toggle('active', active);
-    const base = f === 'name' ? 'Название' : 'Цель';
-    const arrow = active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-    b.textContent = base + arrow;
-  });
+function updateSortButton(){
+  const b = document.getElementById('sortNameBtn');
+  b.classList.add('active');
+  b.textContent = 'Название ' + (sortDir === 'asc' ? '▲' : '▼');
 }
 
 function renderList(){
@@ -886,17 +859,10 @@ function renderList(){
     items = items.filter(c => c.name.toLowerCase().includes(searchQuery));
   }
 
-  if(sortField === 'name'){
-    items.sort((a,b) => {
-      const r = a.name.localeCompare(b.name, 'ru');
-      return sortDir === 'asc' ? r : -r;
-    });
-  }else{
-    items.sort((a,b) => {
-      const r = (a.target || 0) - (b.target || 0);
-      return sortDir === 'asc' ? r : -r;
-    });
-  }
+  items.sort((a,b) => {
+    const r = a.name.localeCompare(b.name, 'ru');
+    return sortDir === 'asc' ? r : -r;
+  });
 
   if(!items.length){
     listEl.innerHTML = '<div class="empty-list">' +
@@ -908,15 +874,17 @@ function renderList(){
   listEl.innerHTML = '';
   items.forEach(c => {
     const row = document.createElement('div');
-    row.className = 'craft-row';
+    row.className = 'craft-row' + (c._src === 'db' ? ' is-db' : '');
 
     const info = document.createElement('div');
     info.className = 'craft-info';
 
     const name = document.createElement('div');
     name.className = 'craft-name';
-    name.innerHTML = escapeHtml(c.name) +
-      (c._src === 'local' ? '<span class="craft-src">локальный</span>' : '');
+    const badge = c._src === 'db'
+      ? '<span class="craft-src db">база</span>'
+      : '<span class="craft-src local">локальный</span>';
+    name.innerHTML = escapeHtml(c.name) + badge;
 
     const meta = document.createElement('div');
     meta.className = 'craft-meta';
@@ -926,26 +894,26 @@ function renderList(){
     meta.textContent = 'цель: ' + (c.target ?? '?') + ' · финал: ' + comboStr;
 
     info.append(name, meta);
+    row.append(info);
 
-    const del = document.createElement('button');
-    del.className = 'del-btn';
-    del.textContent = '✕';
-    del.title = 'Удалить';
-    del.onclick = (e) => {
-      e.stopPropagation();
-      if(!confirm('Удалить «' + c.name + '»?')) return;
-      const lower = c.name.toLowerCase();
-      if(c._src === 'db'){
-        if(!deletedNames.includes(lower)) deletedNames.push(lower);
-        saveDeleted();
-      }
-      localCrafts = localCrafts.filter(x => x.name.toLowerCase() !== lower);
-      saveLocal();
-      mergeCrafts();
-      renderList();
-    };
+    // крестик только для локальных — база не удаляется
+    if(c._src === 'local'){
+      const del = document.createElement('button');
+      del.className = 'del-btn';
+      del.textContent = '✕';
+      del.title = 'Удалить локальный крафт';
+      del.onclick = (e) => {
+        e.stopPropagation();
+        if(!confirm('Удалить «' + c.name + '»?')) return;
+        const lower = c.name.toLowerCase();
+        localCrafts = localCrafts.filter(x => x.name.toLowerCase() !== lower);
+        saveLocal();
+        mergeCrafts();
+        renderList();
+      };
+      row.append(del);
+    }
 
-    row.append(info, del);
     row.onclick = () => openCraft(c);
     listEl.appendChild(row);
   });
@@ -956,7 +924,6 @@ function openCraft(c){
   combo = Array.isArray(c.combo) ? c.combo.slice(0,3) : [];
   renderCombo();
   switchTab('calc');
-  // авто-расчёт, если есть цель
   if(c.target !== undefined && c.target !== null && c.target !== ''){
     run();
   }else{
@@ -1027,7 +994,7 @@ function escapeHtml(s){
 /* ====================== СТАРТ ====================== */
 renderGrid();
 renderCombo();
-updateSortButtons();
+updateSortButton();
 
 loadAll().then(() => {
   if(currentTab === 'list'){
