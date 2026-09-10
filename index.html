@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ковка — калькулятор</title>
 <style>
 :root{
@@ -12,99 +12,116 @@
   --muted:#8b93a1;
   --accent:#d4a72c;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+*{box-sizing:border-box}
 body{
-  margin:0;
-  padding:14px 12px 20px;
-  background:radial-gradient(1000px 500px at 50% -10%, #1d2330, #0b0d10 65%);
+  margin:0;padding:26px 16px 70px;
+  background:radial-gradient(1200px 600px at 50% -10%, #1d2330, #0b0d10 65%);
   color:var(--text);
   font-family:"Segoe UI",Roboto,system-ui,sans-serif;
-  min-height:100dvh;
-  display:flex;
-  flex-direction:column;
+  min-height:100vh;
   -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
 }
-h1{
-  text-align:center;
-  font-size:16px;
-  letter-spacing:.4px;
-  margin:0 0 10px;
-  font-weight:600;
-}
+.hidden{display:none !important}
+h1{text-align:center;font-size:22px;letter-spacing:.5px;margin:0 0 6px;font-weight:600}
+.sub{text-align:center;color:var(--muted);font-size:13px;margin:0 0 20px}
 
-.panel{
-  max-width:560px;
-  width:100%;
-  margin:0 auto 10px;
+/* ---------- вкладки ---------- */
+.tabs{
+  display:flex;gap:4px;
+  max-width:660px;margin:0 auto 16px;
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:12px;
-  padding:10px 12px;
+  padding:4px;
+}
+.tab{
+  flex:1;
+  padding:9px 16px;
+  border-radius:9px;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.15s;
+  font-family:inherit;
+}
+.tab:hover{color:var(--text)}
+.tab.active{
+  background:linear-gradient(180deg,#2e343f,#232833);
+  color:var(--text);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
 }
 
-.field-row{display:flex;gap:10px;align-items:center;justify-content:center}
-label{font-size:13px;color:var(--muted)}
-input[type=number]{
-  flex:1;
-  min-width:0;
-  padding:9px 12px;
-  border-radius:9px;
+.panel{
+  max-width:660px;margin:0 auto 16px;
+  background:var(--panel);
   border:1px solid var(--border);
-  background:#11151b;
-  color:var(--text);
-  font-size:17px;
-  font-weight:700;
-  outline:none;
+  border-radius:14px;
+  padding:16px 18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+.field-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center}
+label{font-size:14px;color:var(--muted)}
+input[type=number]{
+  width:130px;padding:10px 14px;border-radius:9px;
+  border:1px solid var(--border);background:#11151b;color:var(--text);
+  font-size:17px;font-weight:700;outline:none;
   font-variant-numeric:tabular-nums;
   text-align:center;
+  font-family:inherit;
 }
 input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,167,44,.15)}
+input[type=number]::placeholder{color:#4a525f;font-weight:500;font-size:14px}
 
-/* сетка */
+/* ---------- сетка ---------- */
 .grid{
   display:grid;
-  grid-template-columns:repeat(4, 1fr);
-  gap:9px;
-  max-width:400px;
-  width:100%;
-  margin:0 auto 10px;
+  grid-template-columns:repeat(4, 92px);
+  gap:14px;
+  justify-content:center;
+  margin:0 auto 18px;
+  max-width:660px;
+}
+@media(max-width:460px){
+  .grid{grid-template-columns:repeat(4, 1fr);gap:10px;padding:0 4px}
 }
 
 .cell{
   position:relative;
-  aspect-ratio:1/1;
-  border-radius:12px;
+  width:100%;aspect-ratio:1/1;
+  border-radius:13px;
   border:2px solid var(--border);
   background:linear-gradient(180deg,#2a303a,#1a1e25);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
-  transition:transform .1s, border-color .15s, box-shadow .15s;
+  transition:transform .12s, border-color .15s, box-shadow .15s;
   user-select:none;
-  font-weight:800;
-  font-size:19px;
+  font-weight:800;font-size:21px;
   font-variant-numeric:tabular-nums;
+  text-shadow:0 2px 8px #000;
 }
-.cell.pos{color:#c9ffd9;box-shadow:inset 0 0 20px rgba(78,203,113,.12)}
-.cell.neg{color:#ffd2d2;box-shadow:inset 0 0 20px rgba(239,91,91,.12)}
-.cell:active{transform:scale(.93)}
-.cell.pos:active{border-color:#4ecb71}
-.cell.neg:active{border-color:#ef5b5b}
+.cell.pos{color:#c9ffd9;box-shadow:inset 0 0 22px rgba(78,203,113,.12)}
+.cell.neg{color:#ffd2d2;box-shadow:inset 0 0 22px rgba(239,91,91,.12)}
+.cell:hover{transform:translateY(-3px);border-color:var(--accent)}
+.cell:active{transform:scale(.94)}
 
-/* комбо */
+/* ---------- комбо ---------- */
 .combo-wrap{
   display:flex;align-items:center;justify-content:center;
-  gap:8px;flex-wrap:wrap;
-  max-width:560px;width:100%;
-  margin:0 auto 10px;
+  gap:10px;flex-wrap:wrap;
+  max-width:660px;
+  margin:0 auto 16px;
 }
-.slots{display:flex;gap:6px}
+.combo-label{font-size:13px;color:var(--muted)}
+.slots{display:flex;gap:8px}
 .slot{
-  min-width:52px;height:38px;padding:0 10px;
+  min-width:58px;height:40px;padding:0 12px;
   border-radius:10px;
   display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:14px;
+  font-weight:800;font-size:15px;
   font-variant-numeric:tabular-nums;
   transition:.15s;
 }
@@ -115,120 +132,483 @@ input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(21
 .slot.filled{cursor:pointer;border:2px solid transparent}
 .slot.filled.pos{background:rgba(78,203,113,.15);border-color:rgba(78,203,113,.5);color:#8ef0aa}
 .slot.filled.neg{background:rgba(239,91,91,.15);border-color:rgba(239,91,91,.5);color:#ffa3a3}
-.slot.filled:active{filter:brightness(1.4)}
+.slot.filled:hover{filter:brightness(1.3)}
 
-/* кнопки */
+/* ---------- кнопки ---------- */
 .btn{
-  padding:11px 28px;border-radius:10px;border:none;
+  padding:11px 26px;border-radius:10px;border:none;
   font-size:15px;font-weight:700;cursor:pointer;
   background:linear-gradient(180deg,#d9b13a,#b98e1c);
   color:#1a1400;
-  transition:.12s;
+  transition:.15s;
   letter-spacing:.3px;
+  font-family:inherit;
 }
-.btn:active{transform:scale(.96);filter:brightness(.95)}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.secondary{
+  background:linear-gradient(180deg,#3a4250,#2a303a);
+  color:var(--text);
+}
 .btn.ghost{
   background:transparent;border:1px solid var(--border);
-  color:var(--muted);font-weight:600;font-size:12px;
-  padding:8px 12px;
+  color:var(--muted);font-weight:600;font-size:13px;padding:9px 16px;
 }
-.btn.ghost:active{color:var(--text);border-color:#4d5666}
+.btn.ghost:hover{color:var(--text);border-color:#4d5666}
 
 .center{text-align:center}
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
-/* результат */
-#result{max-width:560px;width:100%;margin:0 auto}
+/* ---------- результат ---------- */
+#result{max-width:660px;margin:22px auto 0}
 #result h2{
-  font-size:12px;text-transform:uppercase;letter-spacing:1.2px;
-  color:var(--muted);font-weight:600;margin:8px 0 8px;text-align:center;
+  font-size:15px;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--muted);font-weight:600;margin:0 0 14px;text-align:center;
 }
 .block{
   background:var(--panel);
   border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px 12px;
-  margin-bottom:8px;
+  border-radius:14px;
+  padding:14px 18px;
+  margin-bottom:12px;
 }
 .block.end{border-color:rgba(212,167,44,.45);background:linear-gradient(180deg,#221f14,#1b1f26)}
 .btitle{
-  font-size:11px;text-transform:uppercase;letter-spacing:1px;
-  color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;
+  font-size:12px;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--muted);margin-bottom:11px;display:flex;justify-content:space-between;
 }
 .cnt{color:#5a6272;letter-spacing:0}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{
-  padding:6px 12px;border-radius:8px;
-  font-weight:800;font-size:14px;
+  padding:8px 15px;border-radius:9px;
+  font-weight:800;font-size:15px;
   font-variant-numeric:tabular-nums;
 }
 .chip.pos{background:rgba(78,203,113,.16);color:#8ef0aa;border:1px solid rgba(78,203,113,.35)}
 .chip.neg{background:rgba(239,91,91,.16);color:#ffa3a3;border:1px solid rgba(239,91,91,.35)}
-.empty{color:#5a6272;font-style:italic;font-size:13px}
+.empty{color:#5a6272;font-style:italic;font-size:14px}
 
 .total{
-  text-align:center;font-size:17px;font-weight:800;
-  padding:11px;border-radius:12px;
+  text-align:center;font-size:19px;font-weight:800;
+  padding:16px;border-radius:14px;
   background:linear-gradient(180deg,rgba(212,167,44,.14),rgba(212,167,44,.05));
   border:1px solid rgba(212,167,44,.4);
-  margin-bottom:8px;
+  margin-bottom:12px;
   font-variant-numeric:tabular-nums;
 }
 .total .ok{color:#6ee68e}
-.total small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:4px;letter-spacing:.3px}
+.total small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:6px;letter-spacing:.3px}
 
 details{
   background:var(--panel);border:1px solid var(--border);
-  border-radius:12px;padding:9px 12px;
+  border-radius:14px;padding:12px 18px;
 }
-summary{cursor:pointer;color:var(--muted);font-size:12px;outline:none;user-select:none}
-.steps{margin-top:8px;display:flex;flex-direction:column;gap:3px;max-height:200px;overflow:auto}
+summary{cursor:pointer;color:var(--muted);font-size:13px;outline:none;user-select:none}
+summary:hover{color:var(--text)}
+.steps{margin-top:12px;display:flex;flex-direction:column;gap:4px;max-height:340px;overflow:auto}
 .step{
   display:flex;justify-content:space-between;align-items:center;
-  padding:5px 9px;border-radius:7px;background:#151920;
-  font-size:13px;font-variant-numeric:tabular-nums;
+  padding:6px 10px;border-radius:8px;background:#151920;
+  font-size:14px;font-variant-numeric:tabular-nums;
 }
 .step .d{font-weight:700}
 .step .d.pos{color:#8ef0aa}
 .step .d.neg{color:#ffa3a3}
-.step .r{color:var(--muted);font-size:12px}
+.step .r{color:var(--muted);font-size:13px}
 .step.isend{background:#221f14;border:1px solid rgba(212,167,44,.25)}
 .err{
-  text-align:center;padding:16px;border-radius:12px;
+  text-align:center;padding:20px;border-radius:14px;
   background:rgba(239,91,91,.1);border:1px solid rgba(239,91,91,.4);
-  color:#ffa3a3;font-weight:600;font-size:14px;
+  color:#ffa3a3;font-weight:600;
 }
-.err small{display:block;font-weight:400;color:#c78c8c;margin-top:6px;font-size:12px}
+.err small{display:block;font-weight:400;color:#c78c8c;margin-top:6px;font-size:13px}
+.hint{text-align:center;color:#5a6272;font-size:12px;margin:10px 0 0}
+
+/* ---------- список ---------- */
+.list-controls{
+  max-width:660px;
+  margin:0 auto 12px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.search-input{
+  flex:1;
+  min-width:160px;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#11151b;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+  font-family:inherit;
+}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,167,44,.15)}
+.search-input::placeholder{color:#4a525f}
+.sort-btn{
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:var(--muted);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.15s;
+  font-family:inherit;
+  white-space:nowrap;
+}
+.sort-btn:hover{color:var(--text)}
+.sort-btn.active{
+  color:var(--accent);
+  border-color:rgba(212,167,44,.5);
+  background:rgba(212,167,44,.08);
+}
+.export-btn{
+  padding:10px 16px;
+  border-radius:10px;
+  border:1px solid rgba(212,167,44,.4);
+  background:rgba(212,167,44,.1);
+  color:var(--accent);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.15s;
+  font-family:inherit;
+  white-space:nowrap;
+}
+.export-btn:hover{background:rgba(212,167,44,.2)}
+
+#craftList{
+  max-width:660px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.craft-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 16px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  cursor:pointer;
+  transition:.15s;
+}
+.craft-row:hover{
+  border-color:var(--accent);
+  transform:translateY(-1px);
+}
+.craft-info{flex:1;min-width:0}
+.craft-name{
+  font-size:15px;
+  font-weight:600;
+  margin-bottom:3px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.craft-meta{
+  font-size:12px;
+  color:var(--muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.craft-src{
+  display:inline-block;
+  margin-left:6px;
+  padding:1px 6px;
+  border-radius:5px;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  color:#5a6272;
+  background:#232833;
+  vertical-align:middle;
+}
+.del-btn{
+  width:30px;height:30px;
+  border-radius:8px;
+  border:1px solid transparent;
+  background:transparent;
+  color:#5a6272;
+  font-size:14px;
+  cursor:pointer;
+  transition:.15s;
+  flex-shrink:0;
+  padding:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:inherit;
+}
+.del-btn:hover{
+  background:rgba(239,91,91,.15);
+  color:#ffa3a3;
+  border-color:rgba(239,91,91,.3);
+}
+.empty-list{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--muted);
+  font-size:14px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+.db-warn{
+  max-width:660px;
+  margin:0 auto 12px;
+  padding:10px 14px;
+  border-radius:10px;
+  background:rgba(212,167,44,.08);
+  border:1px solid rgba(212,167,44,.3);
+  color:#d4a72c;
+  font-size:12px;
+  line-height:1.5;
+}
+
+/* ---------- модалки ---------- */
+.modal-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.7);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;
+  padding:16px;
+  backdrop-filter:blur(4px);
+}
+.modal{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  max-width:520px;
+  width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.modal h3{margin:0 0 14px;font-size:17px;font-weight:600}
+.modal p{margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.5}
+.modal input[type=text]{
+  width:100%;
+  padding:11px 14px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background:#11151b;
+  color:var(--text);
+  font-size:15px;
+  outline:none;
+  font-family:inherit;
+}
+.modal input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,167,44,.15)}
+.modal .preview{
+  margin:12px 0 16px;
+  padding:10px 12px;
+  background:#151920;
+  border-radius:9px;
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.5;
+}
+.modal textarea{
+  width:100%;
+  height:260px;
+  padding:10px 12px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background:#11151b;
+  color:var(--text);
+  font-size:12px;
+  font-family:"Consolas","Menlo",monospace;
+  outline:none;
+  resize:vertical;
+  margin-bottom:12px;
+}
+.modal textarea:focus{border-color:var(--accent)}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 </style>
 </head>
 <body>
 
 <h1>⚒️ Ковка — калькулятор</h1>
+<p class="sub">Введи цель, собери финальную комбинацию — и жми «Рассчитать»</p>
 
-<div class="panel">
-  <div class="field-row">
-    <label for="target">Цель:</label>
-    <input id="target" type="number" value="" step="1" inputmode="numeric">
+<div class="tabs">
+  <button class="tab active" data-tab="calc">Калькулятор</button>
+  <button class="tab" data-tab="list">Список</button>
+</div>
+
+<!-- ================= ВКЛАДКА: КАЛЬКУЛЯТОР ================= -->
+<div id="tab-calc">
+
+  <div class="panel">
+    <div class="field-row">
+      <label for="target">Итоговое значение:</label>
+      <input id="target" type="number" value="" step="1" placeholder="например, 86">
+    </div>
+    <p class="hint">Клик по ячейке ниже — добавить её в финальную комбинацию (до 3 штук)</p>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="combo-wrap">
+    <span class="combo-label">Финальная комбинация:</span>
+    <div class="slots" id="slots"></div>
+    <button class="btn ghost" id="clearCombo">Очистить</button>
+  </div>
+
+  <div class="center btn-row">
+    <button class="btn" id="calc">Рассчитать</button>
+    <button class="btn secondary" id="saveBtn">Сохранить</button>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<!-- ================= ВКЛАДКА: СПИСОК ================= -->
+<div id="tab-list" class="hidden">
+  <div id="dbWarn" class="db-warn hidden">
+    ⚠️ <b>db.txt</b> не загружен — файл не найден рядом с HTML или страница открыта через <code>file://</code>.
+    Пока показываются только крафты, сохранённые локально.
+  </div>
+
+  <div class="list-controls">
+    <input id="searchInput" class="search-input" type="text" placeholder="Поиск: мед...">
+    <button class="sort-btn active" data-field="name">Название ▲</button>
+    <button class="sort-btn" data-field="target">Цель</button>
+    <button class="export-btn" id="exportBtn">⬇ Выгрузить</button>
+  </div>
+
+  <div id="craftList"></div>
+</div>
+
+<!-- ================= МОДАЛКА: СОХРАНЕНИЕ ================= -->
+<div class="modal-bg hidden" id="saveModal">
+  <div class="modal">
+    <h3>Сохранить крафт</h3>
+    <input id="craftName" type="text" placeholder="Название, например «Медная пластина»">
+    <div class="preview" id="savePreview"></div>
+    <div class="modal-btns">
+      <button class="btn ghost" id="saveCancel">Отмена</button>
+      <button class="btn" id="saveConfirm">Сохранить</button>
+    </div>
   </div>
 </div>
 
-<div class="grid" id="grid"></div>
-
-<div class="combo-wrap">
-  <div class="slots" id="slots"></div>
-  <button class="btn ghost" id="clearCombo">Сброс</button>
+<!-- ================= МОДАЛКА: ВЫГРУЗКА ================= -->
+<div class="modal-bg hidden" id="exportModal">
+  <div class="modal">
+    <h3>Выгрузка данных</h3>
+    <p>Скопируй содержимое и вставь в <b>db.txt</b> рядом с HTML. Формат — JSON-массив.</p>
+    <textarea id="exportArea" readonly></textarea>
+    <div class="modal-btns">
+      <button class="btn ghost" id="exportClose">Закрыть</button>
+      <button class="btn ghost" id="exportDownload">Скачать .txt</button>
+      <button class="btn" id="exportCopy">Скопировать</button>
+    </div>
+  </div>
 </div>
-
-<div class="center">
-  <button class="btn" id="calc">Рассчитать</button>
-</div>
-
-<div id="result"></div>
 
 <script>
 /* ====================== ДАННЫЕ ====================== */
 const MOVES = [-3, -6, 2, 7, -9, -15, 13, 16];
+const CRAFT_KEY = 'forgeCrafts_v1';
+const DELETED_KEY = 'forgeCraftsDeleted_v1';
 
 let combo = [];
+let baseCrafts = [];        // из db.txt
+let localCrafts = [];       // из localStorage
+let deletedNames = [];      // имена db-крафтов, удалённых локально
+let allCrafts = [];
+
+let currentTab = 'calc';
+let sortField = 'name';
+let sortDir = 'asc';
+let searchQuery = '';
+let dbLoaded = false;
+
+/* ====================== ЗАГРУЗКА ====================== */
+async function loadAll(){
+  // base из db.txt
+  try{
+    const r = await fetch('db.txt', {cache:'no-store'});
+    if(r.ok){
+      const data = await r.json();
+      if(Array.isArray(data)){
+        baseCrafts = data.filter(c => c && typeof c.name === 'string');
+      }
+      dbLoaded = true;
+    }
+  }catch(e){
+    console.warn('db.txt недоступен', e);
+  }
+
+  // локальные
+  try{
+    const raw = localStorage.getItem(CRAFT_KEY);
+    if(raw){
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)) localCrafts = arr;
+    }
+  }catch(e){}
+
+  try{
+    const raw = localStorage.getItem(DELETED_KEY);
+    if(raw){
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)) deletedNames = arr;
+    }
+  }catch(e){}
+
+  mergeCrafts();
+}
+
+function saveLocal(){
+  try{
+    localStorage.setItem(CRAFT_KEY, JSON.stringify(localCrafts));
+  }catch(e){
+    alert('Не удалось сохранить: превышен лимит хранилища браузера');
+  }
+}
+
+function saveDeleted(){
+  try{
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deletedNames));
+  }catch(e){}
+}
+
+function mergeCrafts(){
+  const map = new Map();
+  baseCrafts.forEach(c => {
+    if(!deletedNames.includes(c.name.toLowerCase())){
+      map.set(c.name.toLowerCase(), {...c, _src:'db'});
+    }
+  });
+  localCrafts.forEach(c => {
+    map.set(c.name.toLowerCase(), {...c, _src:'local'});
+  });
+  allCrafts = [...map.values()];
+}
+
+/* ====================== ВКЛАДКИ ====================== */
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => switchTab(t.dataset.tab);
+});
+
+function switchTab(name){
+  currentTab = name;
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === name);
+  });
+  document.getElementById('tab-calc').classList.toggle('hidden', name !== 'calc');
+  document.getElementById('tab-list').classList.toggle('hidden', name !== 'list');
+  if(name === 'list'){
+    document.getElementById('dbWarn').classList.toggle('hidden', dbLoaded);
+    renderList();
+  }
+}
 
 /* ====================== СЕТКА ====================== */
 const gridEl = document.getElementById('grid');
@@ -261,6 +641,7 @@ function renderCombo(){
       const v = combo[i];
       d.className = 'slot filled ' + (v > 0 ? 'pos' : 'neg');
       d.textContent = (v > 0 ? '+' : '') + v;
+      d.title = 'Убрать';
       d.onclick = () => { combo.splice(i,1); renderCombo(); };
     }else{
       d.className = 'slot empty';
@@ -275,18 +656,14 @@ document.getElementById('clearCombo').onclick = () => {
   renderCombo();
 };
 
-/* ====================== ПОИСК РЕШЕНИЯ (BFS) ====================== */
-/* Всегда с запретом опускаться ниже 0 */
+/* ====================== ПОИСК РЕШЕНИЯ ====================== */
 function solveBFS(S, moves){
   if(S === 0) return [];
-
   const margin = 80;
   const lo = 0;
   const hi = Math.max(S, 0) + margin;
-
   const prev = new Map();
   prev.set(0, null);
-
   let frontier = [0];
   let found = false;
 
@@ -297,7 +674,7 @@ function solveBFS(S, moves){
         const nv = v + m;
         if(nv < lo || nv > hi) continue;
         if(prev.has(nv)) continue;
-        prev.set(nv, {from: v, move: m});
+        prev.set(nv, {from:v, move:m});
         if(nv === S){ found = true; break; }
         next.push(nv);
       }
@@ -307,7 +684,6 @@ function solveBFS(S, moves){
   }
 
   if(!prev.has(S)) return null;
-
   const seq = [];
   let cur = S;
   while(cur !== 0){
@@ -333,8 +709,8 @@ function run(){
   const resEl = document.getElementById('result');
   const target = Number(document.getElementById('target').value);
 
-  if(!Number.isFinite(target)){
-    resEl.innerHTML = '<div class="err">Введите корректное число</div>';
+  if(!Number.isFinite(target) || document.getElementById('target').value === ''){
+    resEl.innerHTML = '<div class="err">Введите итоговое значение</div>';
     return;
   }
 
@@ -348,7 +724,6 @@ function run(){
   }
 
   const seq = solveBFS(S, MOVES);
-
   if(seq === null){
     resEl.innerHTML = '<div class="err">Не удалось найти решение 🤔<br>' +
       '<small>Попробуйте изменить финальную комбинацию или цель</small></div>';
@@ -358,17 +733,14 @@ function run(){
   renderResult(seq, combo, endSum, target);
 }
 
-/* ====================== ВЫВОД ====================== */
 function renderResult(seq, endCombo, endSum, target){
   const resEl = document.getElementById('result');
-
   const mainSeq = seq.slice().sort((a,b) => b - a);
   const mainSum = mainSeq.reduce((a,b) => a + b, 0);
   const grouped = groupMoves(mainSeq);
 
   let html = '<h2>Результат</h2>';
 
-  /* основные шаги */
   html += '<div class="block">';
   html += '<div class="btitle"><span>Основные шаги</span><span class="cnt">' +
           mainSeq.length + ' шт. · сумма ' + (mainSum > 0 ? '+' : '') + mainSum + '</span></div>';
@@ -384,7 +756,6 @@ function renderResult(seq, endCombo, endSum, target){
   }
   html += '</div>';
 
-  /* финальная комбинация */
   if(endCombo.length){
     html += '<div class="block end">';
     html += '<div class="btitle"><span>Финальная комбинация</span><span class="cnt">' +
@@ -394,11 +765,9 @@ function renderResult(seq, endCombo, endSum, target){
       html += '<span class="chip ' + (v > 0 ? 'pos' : 'neg') + '">' +
               (v > 0 ? '+' : '') + v + '</span>';
     }
-    html += '</div>';
-    html += '</div>';
+    html += '</div></div>';
   }
 
-  /* итог */
   const total = mainSum + endSum;
   html += '<div class="total">' +
           (mainSum > 0 ? '+' : '') + mainSum +
@@ -408,10 +777,8 @@ function renderResult(seq, endCombo, endSum, target){
           '<small>цель: ' + target + ' · всего нажатий: ' + (mainSeq.length + endCombo.length) + '</small>' +
           '</div>';
 
-  /* пошагово */
   html += '<details><summary>Показать пошагово</summary><div class="steps">';
-  let cur = 0;
-  let i = 1;
+  let cur = 0, i = 1;
   for(const v of mainSeq){
     cur += v;
     html += '<div class="step"><span class="d ' + (v > 0 ? 'pos' : 'neg') + '">' +
@@ -430,9 +797,244 @@ function renderResult(seq, endCombo, endSum, target){
   resEl.innerHTML = html;
 }
 
+/* ====================== СОХРАНЕНИЕ ====================== */
+document.getElementById('saveBtn').onclick = () => {
+  const targetVal = document.getElementById('target').value;
+  const target = Number(targetVal);
+  if(targetVal === '' || !Number.isFinite(target)){
+    alert('Сначала введи цель и нажми «Рассчитать»');
+    return;
+  }
+
+  const comboStr = combo.length
+    ? combo.map(v => (v > 0 ? '+' : '') + v).join(', ')
+    : 'без финальной комбинации';
+
+  document.getElementById('craftName').value = '';
+  document.getElementById('savePreview').innerHTML =
+    '<b>Цель:</b> ' + target + '<br><b>Финал:</b> ' + comboStr;
+  showModal('saveModal');
+  setTimeout(() => document.getElementById('craftName').focus(), 60);
+};
+
+document.getElementById('saveCancel').onclick = () => hideModal('saveModal');
+
+document.getElementById('saveConfirm').onclick = () => {
+  const name = document.getElementById('craftName').value.trim();
+  if(!name){
+    alert('Введите название');
+    return;
+  }
+  const target = Number(document.getElementById('target').value);
+  const craft = { name, target, combo: combo.slice() };
+
+  // убираем старое локальное с тем же именем, кладём новое
+  const lower = name.toLowerCase();
+  localCrafts = localCrafts.filter(c => c.name.toLowerCase() !== lower);
+  localCrafts.push(craft);
+  // если это имя было в db — убираем из «удалённых»
+  deletedNames = deletedNames.filter(n => n !== lower);
+
+  saveLocal();
+  saveDeleted();
+  mergeCrafts();
+  hideModal('saveModal');
+
+  // визуальный отклик
+  const btn = document.getElementById('saveBtn');
+  const old = btn.textContent;
+  btn.textContent = '✓ Сохранено';
+  setTimeout(() => btn.textContent = old, 1200);
+};
+
+/* ====================== СПИСОК ====================== */
+document.getElementById('searchInput').oninput = (e) => {
+  searchQuery = e.target.value.toLowerCase().trim();
+  renderList();
+};
+
+document.querySelectorAll('.sort-btn').forEach(b => {
+  b.onclick = () => {
+    const f = b.dataset.field;
+    if(sortField === f){
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    }else{
+      sortField = f;
+      sortDir = 'asc';
+    }
+    updateSortButtons();
+    renderList();
+  };
+});
+
+function updateSortButtons(){
+  document.querySelectorAll('.sort-btn').forEach(b => {
+    const f = b.dataset.field;
+    const active = f === sortField;
+    b.classList.toggle('active', active);
+    const base = f === 'name' ? 'Название' : 'Цель';
+    const arrow = active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+    b.textContent = base + arrow;
+  });
+}
+
+function renderList(){
+  const listEl = document.getElementById('craftList');
+  let items = allCrafts.slice();
+
+  if(searchQuery){
+    items = items.filter(c => c.name.toLowerCase().includes(searchQuery));
+  }
+
+  if(sortField === 'name'){
+    items.sort((a,b) => {
+      const r = a.name.localeCompare(b.name, 'ru');
+      return sortDir === 'asc' ? r : -r;
+    });
+  }else{
+    items.sort((a,b) => {
+      const r = (a.target || 0) - (b.target || 0);
+      return sortDir === 'asc' ? r : -r;
+    });
+  }
+
+  if(!items.length){
+    listEl.innerHTML = '<div class="empty-list">' +
+      (searchQuery ? 'Ничего не найдено по запросу «' + escapeHtml(searchQuery) + '»' : 'Пока пусто — сохрани первый крафт') +
+      '</div>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  items.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'craft-row';
+
+    const info = document.createElement('div');
+    info.className = 'craft-info';
+
+    const name = document.createElement('div');
+    name.className = 'craft-name';
+    name.innerHTML = escapeHtml(c.name) +
+      (c._src === 'local' ? '<span class="craft-src">локальный</span>' : '');
+
+    const meta = document.createElement('div');
+    meta.className = 'craft-meta';
+    const comboStr = (c.combo && c.combo.length)
+      ? c.combo.map(v => (v > 0 ? '+' : '') + v).join(', ')
+      : 'без финала';
+    meta.textContent = 'цель: ' + (c.target ?? '?') + ' · финал: ' + comboStr;
+
+    info.append(name, meta);
+
+    const del = document.createElement('button');
+    del.className = 'del-btn';
+    del.textContent = '✕';
+    del.title = 'Удалить';
+    del.onclick = (e) => {
+      e.stopPropagation();
+      if(!confirm('Удалить «' + c.name + '»?')) return;
+      const lower = c.name.toLowerCase();
+      if(c._src === 'db'){
+        if(!deletedNames.includes(lower)) deletedNames.push(lower);
+        saveDeleted();
+      }
+      localCrafts = localCrafts.filter(x => x.name.toLowerCase() !== lower);
+      saveLocal();
+      mergeCrafts();
+      renderList();
+    };
+
+    row.append(info, del);
+    row.onclick = () => openCraft(c);
+    listEl.appendChild(row);
+  });
+}
+
+function openCraft(c){
+  document.getElementById('target').value = c.target ?? '';
+  combo = Array.isArray(c.combo) ? c.combo.slice(0,3) : [];
+  renderCombo();
+  switchTab('calc');
+  // авто-расчёт, если есть цель
+  if(c.target !== undefined && c.target !== null && c.target !== ''){
+    run();
+  }else{
+    document.getElementById('result').innerHTML = '';
+  }
+}
+
+/* ====================== ЭКСПОРТ ====================== */
+document.getElementById('exportBtn').onclick = () => {
+  const data = allCrafts.map(c => ({
+    name: c.name,
+    target: c.target,
+    combo: c.combo || []
+  }));
+  document.getElementById('exportArea').value = JSON.stringify(data, null, 2);
+  showModal('exportModal');
+};
+
+document.getElementById('exportClose').onclick = () => hideModal('exportModal');
+
+document.getElementById('exportCopy').onclick = async () => {
+  const area = document.getElementById('exportArea');
+  try{
+    await navigator.clipboard.writeText(area.value);
+  }catch(e){
+    area.select();
+    document.execCommand('copy');
+  }
+  const btn = document.getElementById('exportCopy');
+  const old = btn.textContent;
+  btn.textContent = '✓ Скопировано';
+  setTimeout(() => btn.textContent = old, 1500);
+};
+
+document.getElementById('exportDownload').onclick = () => {
+  const blob = new Blob([document.getElementById('exportArea').value], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'db.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+/* ====================== МОДАЛКИ ====================== */
+function showModal(id){ document.getElementById(id).classList.remove('hidden'); }
+function hideModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.onclick = (e) => { if(e.target === m) m.classList.add('hidden'); };
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal-bg').forEach(m => m.classList.add('hidden'));
+  }
+});
+
+/* ====================== УТИЛ ====================== */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+
 /* ====================== СТАРТ ====================== */
 renderGrid();
 renderCombo();
+updateSortButtons();
+
+loadAll().then(() => {
+  if(currentTab === 'list'){
+    document.getElementById('dbWarn').classList.toggle('hidden', dbLoaded);
+    renderList();
+  }
+});
 </script>
 </body>
 </html>
