@@ -219,9 +219,10 @@ summary:hover{color:var(--text)}
 .err small{display:block;font-weight:400;color:#c78c8c;margin-top:6px;font-size:13px}
 .hint{text-align:center;color:#5a6272;font-size:12px;margin:10px 0 0}
 
+/* ---------- список ---------- */
 .list-controls{
   max-width:660px;
-  margin:0 auto 12px;
+  margin:0 auto 8px;
   display:flex;
   gap:8px;
   flex-wrap:wrap;
@@ -274,6 +275,41 @@ summary:hover{color:var(--text)}
 }
 .export-btn:hover{background:rgba(212,167,44,.2)}
 
+.dupe-bar{
+  max-width:660px;
+  margin:0 auto 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 14px;
+  border-radius:10px;
+  background:rgba(212,167,44,.07);
+  border:1px solid rgba(212,167,44,.28);
+  font-size:12.5px;
+  color:#d4a72c;
+  line-height:1.4;
+}
+.dupe-bar button{
+  padding:7px 13px;
+  border-radius:8px;
+  border:1px solid rgba(212,167,44,.5);
+  background:rgba(212,167,44,.15);
+  color:var(--accent);
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.15s;
+  font-family:inherit;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.dupe-bar button:hover{background:rgba(212,167,44,.3)}
+.dupe-bar button:disabled{
+  opacity:.4;cursor:default;
+  background:transparent;
+}
+
 #craftList{
   max-width:660px;
   margin:0 auto;
@@ -297,7 +333,9 @@ summary:hover{color:var(--text)}
   border-color:var(--accent);
   transform:translateY(-1px);
 }
-.craft-row.is-db:hover{border-color:rgba(212,167,44,.5)}
+.craft-row.is-db{border-left:3px solid rgba(212,167,44,.6)}
+.craft-row.is-local{border-left:3px solid #4a5260}
+.craft-row.is-dupe{background:linear-gradient(90deg,rgba(212,167,44,.06),var(--panel) 60%)}
 .craft-info{flex:1;min-width:0}
 .craft-name{
   font-size:15px;
@@ -375,6 +413,7 @@ summary:hover{color:var(--text)}
   line-height:1.5;
 }
 
+/* ---------- модалки ---------- */
 .modal-bg{
   position:fixed;inset:0;
   background:rgba(0,0,0,.7);
@@ -477,6 +516,11 @@ summary:hover{color:var(--text)}
     Пока показываются только крафты, сохранённые локально.
   </div>
 
+  <div id="dupeBar" class="dupe-bar hidden">
+    <span id="dupeText"></span>
+    <button id="cleanDupes">Очистить дубли</button>
+  </div>
+
   <div class="list-controls">
     <input id="searchInput" class="search-input" type="text" placeholder="Поиск: мед...">
     <button class="sort-btn active" id="sortNameBtn">Название ▲</button>
@@ -503,7 +547,7 @@ summary:hover{color:var(--text)}
 <div class="modal-bg hidden" id="exportModal">
   <div class="modal">
     <h3>Выгрузка данных</h3>
-    <p>Скопируй содержимое и вставь в <b>db.txt</b> рядом с HTML. Формат — JSON-массив.</p>
+    <p>Скопируй содержимое и вставь в <b>db.txt</b> рядом с HTML. Формат — JSON-массив. Локальные дубли исключаются автоматически.</p>
     <textarea id="exportArea" readonly></textarea>
     <div class="modal-btns">
       <button class="btn ghost" id="exportClose">Закрыть</button>
@@ -519,12 +563,12 @@ const MOVES = [-3, -6, 2, 7, -9, -15, 13, 16];
 const CRAFT_KEY = 'forgeCrafts_v1';
 
 let combo = [];
-let baseCrafts = [];        // из db.txt (приоритет)
+let baseCrafts = [];        // из db.txt
 let localCrafts = [];       // из localStorage
 let allCrafts = [];
 
 let currentTab = 'calc';
-let sortDir = 'asc';        // 'asc' | 'desc' — только по имени
+let sortDir = 'asc';
 let searchQuery = '';
 let dbLoaded = false;
 
@@ -551,7 +595,7 @@ async function loadAll(){
     }
   }catch(e){}
 
-  mergeCrafts();
+  rebuildAll();
 }
 
 function saveLocal(){
@@ -562,16 +606,21 @@ function saveLocal(){
   }
 }
 
-/* База имеет приоритет: если имя есть в db.txt — показывается версия оттуда */
-function mergeCrafts(){
-  const map = new Map();
+/* Собираем плоский список: сначала база, затем локальные. Никакого мержа — обе версии видны. */
+function rebuildAll(){
+  const dbList = baseCrafts.map(c => ({...c, _src:'db'}));
+  const locList = localCrafts.map(c => ({...c, _src:'local'}));
+  allCrafts = [...dbList, ...locList];
+}
+
+/* Имена, которые есть и в базе, и локально */
+function findDupeNames(){
+  const dbNames = new Set(baseCrafts.map(c => c.name.toLowerCase()));
+  const dupes = new Set();
   localCrafts.forEach(c => {
-    map.set(c.name.toLowerCase(), {...c, _src:'local'});
+    if(dbNames.has(c.name.toLowerCase())) dupes.add(c.name.toLowerCase());
   });
-  baseCrafts.forEach(c => {
-    map.set(c.name.toLowerCase(), {...c, _src:'db'});
-  });
-  allCrafts = [...map.values()];
+  return dupes;
 }
 
 /* ====================== ВКЛАДКИ ====================== */
@@ -810,13 +859,18 @@ document.getElementById('saveConfirm').onclick = () => {
   }
   const lower = name.toLowerCase();
 
-  // если имя уже есть в базе — предупреждаем
   const inDb = baseCrafts.some(c => c.name.toLowerCase() === lower);
-  if(inDb){
-    if(!confirm('Крафт «' + name + '» уже есть в базе.\n\nБаза имеет приоритет — в списке будет показана версия из db.txt, а не твоя локальная.\n\nВсё равно сохранить?')){
-      return;
-    }
+  const inLocal = localCrafts.some(c => c.name.toLowerCase() === lower);
+
+  let msg = null;
+  if(inDb && inLocal){
+    msg = 'Есть и в базе, и локально.\nЛокальная версия будет заменена.';
+  }else if(inDb){
+    msg = 'Уже есть в базе — появится второй записью как «локальный».';
+  }else if(inLocal){
+    msg = 'Локальная запись с таким именем будет заменена.';
   }
+  if(msg && !confirm(msg + '\n\nПродолжить?')) return;
 
   const target = Number(document.getElementById('target').value);
   const craft = { name, target, combo: combo.slice() };
@@ -824,7 +878,7 @@ document.getElementById('saveConfirm').onclick = () => {
   localCrafts = localCrafts.filter(c => c.name.toLowerCase() !== lower);
   localCrafts.push(craft);
   saveLocal();
-  mergeCrafts();
+  rebuildAll();
   hideModal('saveModal');
 
   const btn = document.getElementById('saveBtn');
@@ -851,6 +905,16 @@ function updateSortButton(){
   b.textContent = 'Название ' + (sortDir === 'asc' ? '▲' : '▼');
 }
 
+document.getElementById('cleanDupes').onclick = () => {
+  const dupes = findDupeNames();
+  if(!dupes.size) return;
+  if(!confirm('Удалить ' + dupes.size + ' локальных записей, которые уже есть в базе?\n\nБаза не тронута — там всё останется.')) return;
+  localCrafts = localCrafts.filter(c => !dupes.has(c.name.toLowerCase()));
+  saveLocal();
+  rebuildAll();
+  renderList();
+};
+
 function renderList(){
   const listEl = document.getElementById('craftList');
   let items = allCrafts.slice();
@@ -861,8 +925,22 @@ function renderList(){
 
   items.sort((a,b) => {
     const r = a.name.localeCompare(b.name, 'ru');
-    return sortDir === 'asc' ? r : -r;
+    if(r !== 0) return sortDir === 'asc' ? r : -r;
+    // при одинаковом имени — база выше локального
+    return (a._src === 'db' ? 0 : 1) - (b._src === 'db' ? 0 : 1);
   });
+
+  // панель дублей
+  const dupes = findDupeNames();
+  const dupeBar = document.getElementById('dupeBar');
+  if(dupes.size){
+    dupeBar.classList.remove('hidden');
+    document.getElementById('dupeText').innerHTML =
+      '🔁 Локальных дублей: <b>' + dupes.size + '</b> — записи, которые уже есть в базе.';
+    document.getElementById('cleanDupes').disabled = false;
+  }else{
+    dupeBar.classList.add('hidden');
+  }
 
   if(!items.length){
     listEl.innerHTML = '<div class="empty-list">' +
@@ -874,7 +952,10 @@ function renderList(){
   listEl.innerHTML = '';
   items.forEach(c => {
     const row = document.createElement('div');
-    row.className = 'craft-row' + (c._src === 'db' ? ' is-db' : '');
+    const isDupe = c._src === 'local' && dupes.has(c.name.toLowerCase());
+    row.className = 'craft-row ' +
+      (c._src === 'db' ? 'is-db' : 'is-local') +
+      (isDupe ? ' is-dupe' : '');
 
     const info = document.createElement('div');
     info.className = 'craft-info';
@@ -896,7 +977,6 @@ function renderList(){
     info.append(name, meta);
     row.append(info);
 
-    // крестик только для локальных — база не удаляется
     if(c._src === 'local'){
       const del = document.createElement('button');
       del.className = 'del-btn';
@@ -908,7 +988,7 @@ function renderList(){
         const lower = c.name.toLowerCase();
         localCrafts = localCrafts.filter(x => x.name.toLowerCase() !== lower);
         saveLocal();
-        mergeCrafts();
+        rebuildAll();
         renderList();
       };
       row.append(del);
@@ -933,11 +1013,15 @@ function openCraft(c){
 
 /* ====================== ЭКСПОРТ ====================== */
 document.getElementById('exportBtn').onclick = () => {
-  const data = allCrafts.map(c => ({
-    name: c.name,
-    target: c.target,
-    combo: c.combo || []
-  }));
+  // Для экспорта берём базу + только те локальные, которых нет в базе по имени
+  const dbNames = new Set(baseCrafts.map(c => c.name.toLowerCase()));
+  const uniqueLocal = localCrafts.filter(c => !dbNames.has(c.name.toLowerCase()));
+
+  const data = [
+    ...baseCrafts.map(c => ({name:c.name, target:c.target, combo:c.combo || []})),
+    ...uniqueLocal.map(c => ({name:c.name, target:c.target, combo:c.combo || []}))
+  ];
+
   document.getElementById('exportArea').value = JSON.stringify(data, null, 2);
   showModal('exportModal');
 };
