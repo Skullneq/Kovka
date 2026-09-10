@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Ковка — калькулятор</title>
+<style>
+:root{
+  --panel:#1b1f26;
+  --border:#343b47;
+  --text:#e8eaee;
+  --muted:#8b93a1;
+  --accent:#d4a72c;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;
+  padding:14px 12px 20px;
+  background:radial-gradient(1000px 500px at 50% -10%, #1d2330, #0b0d10 65%);
+  color:var(--text);
+  font-family:"Segoe UI",Roboto,system-ui,sans-serif;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1{
+  text-align:center;
+  font-size:16px;
+  letter-spacing:.4px;
+  margin:0 0 10px;
+  font-weight:600;
+}
+
+.panel{
+  max-width:560px;
+  width:100%;
+  margin:0 auto 10px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+}
+
+.field-row{display:flex;gap:10px;align-items:center;justify-content:center}
+label{font-size:13px;color:var(--muted)}
+input[type=number]{
+  flex:1;
+  min-width:0;
+  padding:9px 12px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background:#11151b;
+  color:var(--text);
+  font-size:17px;
+  font-weight:700;
+  outline:none;
+  font-variant-numeric:tabular-nums;
+  text-align:center;
+}
+input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,167,44,.15)}
+
+/* сетка */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:9px;
+  max-width:400px;
+  width:100%;
+  margin:0 auto 10px;
+}
+
+.cell{
+  position:relative;
+  aspect-ratio:1/1;
+  border-radius:12px;
+  border:2px solid var(--border);
+  background:linear-gradient(180deg,#2a303a,#1a1e25);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:transform .1s, border-color .15s, box-shadow .15s;
+  user-select:none;
+  font-weight:800;
+  font-size:19px;
+  font-variant-numeric:tabular-nums;
+}
+.cell.pos{color:#c9ffd9;box-shadow:inset 0 0 20px rgba(78,203,113,.12)}
+.cell.neg{color:#ffd2d2;box-shadow:inset 0 0 20px rgba(239,91,91,.12)}
+.cell:active{transform:scale(.93)}
+.cell.pos:active{border-color:#4ecb71}
+.cell.neg:active{border-color:#ef5b5b}
+
+/* комбо */
+.combo-wrap{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;flex-wrap:wrap;
+  max-width:560px;width:100%;
+  margin:0 auto 10px;
+}
+.slots{display:flex;gap:6px}
+.slot{
+  min-width:52px;height:38px;padding:0 10px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:14px;
+  font-variant-numeric:tabular-nums;
+  transition:.15s;
+}
+.slot.empty{
+  border:2px dashed #3a424e;color:#4a525f;
+  background:transparent;font-weight:400;
+}
+.slot.filled{cursor:pointer;border:2px solid transparent}
+.slot.filled.pos{background:rgba(78,203,113,.15);border-color:rgba(78,203,113,.5);color:#8ef0aa}
+.slot.filled.neg{background:rgba(239,91,91,.15);border-color:rgba(239,91,91,.5);color:#ffa3a3}
+.slot.filled:active{filter:brightness(1.4)}
+
+/* кнопки */
+.btn{
+  padding:11px 28px;border-radius:10px;border:none;
+  font-size:15px;font-weight:700;cursor:pointer;
+  background:linear-gradient(180deg,#d9b13a,#b98e1c);
+  color:#1a1400;
+  transition:.12s;
+  letter-spacing:.3px;
+}
+.btn:active{transform:scale(.96);filter:brightness(.95)}
+.btn.ghost{
+  background:transparent;border:1px solid var(--border);
+  color:var(--muted);font-weight:600;font-size:12px;
+  padding:8px 12px;
+}
+.btn.ghost:active{color:var(--text);border-color:#4d5666}
+
+.center{text-align:center}
+
+/* результат */
+#result{max-width:560px;width:100%;margin:0 auto}
+#result h2{
+  font-size:12px;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--muted);font-weight:600;margin:8px 0 8px;text-align:center;
+}
+.block{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+  margin-bottom:8px;
+}
+.block.end{border-color:rgba(212,167,44,.45);background:linear-gradient(180deg,#221f14,#1b1f26)}
+.btitle{
+  font-size:11px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;
+}
+.cnt{color:#5a6272;letter-spacing:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  padding:6px 12px;border-radius:8px;
+  font-weight:800;font-size:14px;
+  font-variant-numeric:tabular-nums;
+}
+.chip.pos{background:rgba(78,203,113,.16);color:#8ef0aa;border:1px solid rgba(78,203,113,.35)}
+.chip.neg{background:rgba(239,91,91,.16);color:#ffa3a3;border:1px solid rgba(239,91,91,.35)}
+.empty{color:#5a6272;font-style:italic;font-size:13px}
+
+.total{
+  text-align:center;font-size:17px;font-weight:800;
+  padding:11px;border-radius:12px;
+  background:linear-gradient(180deg,rgba(212,167,44,.14),rgba(212,167,44,.05));
+  border:1px solid rgba(212,167,44,.4);
+  margin-bottom:8px;
+  font-variant-numeric:tabular-nums;
+}
+.total .ok{color:#6ee68e}
+.total small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:4px;letter-spacing:.3px}
+
+details{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:9px 12px;
+}
+summary{cursor:pointer;color:var(--muted);font-size:12px;outline:none;user-select:none}
+.steps{margin-top:8px;display:flex;flex-direction:column;gap:3px;max-height:200px;overflow:auto}
+.step{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:5px 9px;border-radius:7px;background:#151920;
+  font-size:13px;font-variant-numeric:tabular-nums;
+}
+.step .d{font-weight:700}
+.step .d.pos{color:#8ef0aa}
+.step .d.neg{color:#ffa3a3}
+.step .r{color:var(--muted);font-size:12px}
+.step.isend{background:#221f14;border:1px solid rgba(212,167,44,.25)}
+.err{
+  text-align:center;padding:16px;border-radius:12px;
+  background:rgba(239,91,91,.1);border:1px solid rgba(239,91,91,.4);
+  color:#ffa3a3;font-weight:600;font-size:14px;
+}
+.err small{display:block;font-weight:400;color:#c78c8c;margin-top:6px;font-size:12px}
+</style>
+</head>
+<body>
+
+<h1>⚒️ Ковка — калькулятор</h1>
+
+<div class="panel">
+  <div class="field-row">
+    <label for="target">Цель:</label>
+    <input id="target" type="number" value="86" step="1" inputmode="numeric">
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="combo-wrap">
+  <div class="slots" id="slots"></div>
+  <button class="btn ghost" id="clearCombo">Сброс</button>
+</div>
+
+<div class="center">
+  <button class="btn" id="calc">Рассчитать</button>
+</div>
+
+<div id="result"></div>
+
+<script>
+/* ====================== ДАННЫЕ ====================== */
+const MOVES = [-3, -6, 2, 7, -9, -15, 13, 16];
+
+let combo = [];
+
+/* ====================== СЕТКА ====================== */
+const gridEl = document.getElementById('grid');
+
+function renderGrid(){
+  gridEl.innerHTML = '';
+  MOVES.forEach(v => {
+    const cell = document.createElement('div');
+    cell.className = 'cell ' + (v > 0 ? 'pos' : 'neg');
+    cell.textContent = (v > 0 ? '+' : '') + v;
+    cell.onclick = () => addToCombo(v);
+    gridEl.appendChild(cell);
+  });
+}
+
+/* ====================== КОМБИНАЦИЯ ====================== */
+const slotsEl = document.getElementById('slots');
+
+function addToCombo(v){
+  if(combo.length >= 3) return;
+  combo.push(v);
+  renderCombo();
+}
+
+function renderCombo(){
+  slotsEl.innerHTML = '';
+  for(let i = 0; i < 3; i++){
+    const d = document.createElement('div');
+    if(i < combo.length){
+      const v = combo[i];
+      d.className = 'slot filled ' + (v > 0 ? 'pos' : 'neg');
+      d.textContent = (v > 0 ? '+' : '') + v;
+      d.onclick = () => { combo.splice(i,1); renderCombo(); };
+    }else{
+      d.className = 'slot empty';
+      d.textContent = '—';
+    }
+    slotsEl.appendChild(d);
+  }
+}
+
+document.getElementById('clearCombo').onclick = () => {
+  combo = [];
+  renderCombo();
+};
+
+/* ====================== ПОИСК РЕШЕНИЯ (BFS) ====================== */
+/* Всегда с запретом опускаться ниже 0 */
+function solveBFS(S, moves){
+  if(S === 0) return [];
+
+  const margin = 80;
+  const lo = 0;
+  const hi = Math.max(S, 0) + margin;
+
+  const prev = new Map();
+  prev.set(0, null);
+
+  let frontier = [0];
+  let found = false;
+
+  while(frontier.length && !found){
+    const next = [];
+    for(const v of frontier){
+      for(const m of moves){
+        const nv = v + m;
+        if(nv < lo || nv > hi) continue;
+        if(prev.has(nv)) continue;
+        prev.set(nv, {from: v, move: m});
+        if(nv === S){ found = true; break; }
+        next.push(nv);
+      }
+      if(found) break;
+    }
+    frontier = next;
+  }
+
+  if(!prev.has(S)) return null;
+
+  const seq = [];
+  let cur = S;
+  while(cur !== 0){
+    const p = prev.get(cur);
+    if(!p) return null;
+    seq.push(p.move);
+    cur = p.from;
+  }
+  seq.reverse();
+  return seq;
+}
+
+function groupMoves(seq){
+  const m = new Map();
+  for(const v of seq) m.set(v, (m.get(v) || 0) + 1);
+  return [...m.entries()].sort((a,b) => b[0] - a[0]);
+}
+
+/* ====================== РАСЧЁТ ====================== */
+document.getElementById('calc').onclick = run;
+
+function run(){
+  const resEl = document.getElementById('result');
+  const target = Number(document.getElementById('target').value);
+
+  if(!Number.isFinite(target)){
+    resEl.innerHTML = '<div class="err">Введите корректное число</div>';
+    return;
+  }
+
+  const endSum = combo.reduce((a,b) => a + b, 0);
+  const S = target - endSum;
+
+  if(S < 0){
+    resEl.innerHTML = '<div class="err">Невозможно: финальная комбинация превышает цель<br>' +
+      '<small>Уберите или замените финальные шаги</small></div>';
+    return;
+  }
+
+  const seq = solveBFS(S, MOVES);
+
+  if(seq === null){
+    resEl.innerHTML = '<div class="err">Не удалось найти решение 🤔<br>' +
+      '<small>Попробуйте изменить финальную комбинацию или цель</small></div>';
+    return;
+  }
+
+  renderResult(seq, combo, endSum, target);
+}
+
+/* ====================== ВЫВОД ====================== */
+function renderResult(seq, endCombo, endSum, target){
+  const resEl = document.getElementById('result');
+
+  const mainSeq = seq.slice().sort((a,b) => b - a);
+  const mainSum = mainSeq.reduce((a,b) => a + b, 0);
+  const grouped = groupMoves(mainSeq);
+
+  let html = '<h2>Результат</h2>';
+
+  /* основные шаги */
+  html += '<div class="block">';
+  html += '<div class="btitle"><span>Основные шаги</span><span class="cnt">' +
+          mainSeq.length + ' шт. · сумма ' + (mainSum > 0 ? '+' : '') + mainSum + '</span></div>';
+  if(mainSeq.length === 0){
+    html += '<div class="empty">не требуются</div>';
+  }else{
+    html += '<div class="chips">';
+    for(const [v, n] of grouped){
+      html += '<span class="chip ' + (v > 0 ? 'pos' : 'neg') + '">' +
+              n + ' × ' + (v > 0 ? '+' : '') + v + '</span>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  /* финальная комбинация */
+  if(endCombo.length){
+    html += '<div class="block end">';
+    html += '<div class="btitle"><span>Финальная комбинация</span><span class="cnt">' +
+            endCombo.length + ' шт. · сумма ' + (endSum > 0 ? '+' : '') + endSum + '</span></div>';
+    html += '<div class="chips">';
+    for(const v of endCombo){
+      html += '<span class="chip ' + (v > 0 ? 'pos' : 'neg') + '">' +
+              (v > 0 ? '+' : '') + v + '</span>';
+    }
+    html += '</div>';
+    html += '</div>';
+  }
+
+  /* итог */
+  const total = mainSum + endSum;
+  html += '<div class="total">' +
+          (mainSum > 0 ? '+' : '') + mainSum +
+          (endSum !== 0 ? ' ' + (endSum > 0 ? '+' : '−') + ' ' + Math.abs(endSum) : '') +
+          ' = ' + total +
+          ' <span class="ok">✔</span>' +
+          '<small>цель: ' + target + ' · всего нажатий: ' + (mainSeq.length + endCombo.length) + '</small>' +
+          '</div>';
+
+  /* пошагово */
+  html += '<details><summary>Показать пошагово</summary><div class="steps">';
+  let cur = 0;
+  let i = 1;
+  for(const v of mainSeq){
+    cur += v;
+    html += '<div class="step"><span class="d ' + (v > 0 ? 'pos' : 'neg') + '">' +
+            i + '. ' + (v > 0 ? '+' : '') + v + '</span><span class="r">итого: ' + cur + '</span></div>';
+    i++;
+  }
+  for(const v of endCombo){
+    cur += v;
+    html += '<div class="step isend"><span class="d ' + (v > 0 ? 'pos' : 'neg') + '">' +
+            i + '. ' + (v > 0 ? '+' : '') + v + ' <em style="color:#d4a72c;font-style:normal">★</em></span>' +
+            '<span class="r">итого: ' + cur + '</span></div>';
+    i++;
+  }
+  html += '</div></details>';
+
+  resEl.innerHTML = html;
+}
+
+/* ====================== СТАРТ ====================== */
+renderGrid();
+renderCombo();
+</script>
+</body>
+</html>
